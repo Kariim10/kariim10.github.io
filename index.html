@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Band Counter – T&C Garments</title>
+<style>
+  :root {
+    --denim:#1a2a4a; --denim-mid:#243555; --denim-light:#2e4270;
+    --stitch:#c9a84c; --stitch-light:#e8c96a;
+    --done:#2ecc71; --danger:#e74c3c; --warn:#f39c12;
+    --text:#eef2ff; --text-dim:#8fa3c8;
+    --card:rgba(255,255,255,0.05); --card-border:rgba(201,168,76,0.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--denim); color:var(--text);
+    font-family:'Segoe UI','Tahoma',Arial,sans-serif;
+    min-height:100vh;
+    background-image:
+      repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(201,168,76,0.03) 40px,rgba(201,168,76,0.03) 41px),
+      repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(201,168,76,0.03) 40px,rgba(201,168,76,0.03) 41px);
+    display:flex;flex-direction:column;align-items:center;
+    padding:20px 16px 80px;gap:16px;
+  }
+  header{text-align:center;width:100%;max-width:460px;}
+  .brand{font-size:11px;letter-spacing:4px;color:var(--stitch);text-transform:uppercase;margin-bottom:4px;}
+  h1{font-size:26px;font-weight:900;line-height:1.1;}
+  h1 span{color:var(--stitch);}
+
+  /* ── cards ── */
+  .card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:18px;width:100%;max-width:460px;}
+  .card-title{font-size:11px;letter-spacing:2px;color:var(--stitch);text-transform:uppercase;margin-bottom:14px;}
+
+  /* ── fields ── */
+  .field-row{display:flex;gap:10px;margin-bottom:10px;}
+  .field{flex:1;display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:11px;color:var(--text-dim);}
+  .field input{
+    background:rgba(255,255,255,0.08);border:1px solid var(--card-border);
+    border-radius:10px;color:var(--text);font-family:inherit;
+    font-size:16px;font-weight:700;padding:9px 12px;
+    text-align:center;width:100%;outline:none;transition:border-color 0.2s;
+  }
+  .field input.text-left{text-align:left;font-size:14px;font-weight:600;}
+  .field input:focus{border-color:var(--stitch);}
+  .field input[type=number]::-webkit-inner-spin-button{opacity:0;}
+
+  /* ── size breakdown builder ── */
+  #sizes-builder{margin-bottom:10px;}
+  .size-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;animation:fadeUp 0.2s ease;}
+  .size-tag{
+    background:var(--denim-light);border:1px solid var(--card-border);
+    border-radius:8px;color:var(--stitch-light);font-weight:700;font-size:14px;
+    padding:8px 12px;min-width:60px;text-align:center;
+  }
+  .size-qty-input{
+    background:rgba(255,255,255,0.08);border:1px solid var(--card-border);
+    border-radius:8px;color:var(--text);font-family:inherit;font-size:16px;
+    font-weight:700;padding:8px;text-align:center;width:70px;outline:none;
+    transition:border-color 0.2s;
+  }
+  .size-qty-input:focus{border-color:var(--stitch);}
+  .size-qty-input[type=number]::-webkit-inner-spin-button{opacity:0;}
+  .size-label{font-size:12px;color:var(--text-dim);flex:1;}
+  .btn-remove-size{
+    background:none;border:none;color:rgba(231,76,60,0.5);
+    cursor:pointer;font-size:18px;padding:4px;transition:color 0.15s;line-height:1;
+  }
+  .btn-remove-size:hover{color:var(--danger);}
+  .add-size-row{display:flex;gap:8px;margin-bottom:10px;}
+  .inp-new-size{
+    background:rgba(255,255,255,0.08);border:1px solid var(--card-border);
+    border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;
+    font-weight:600;padding:8px 12px;width:90px;outline:none;text-align:center;
+    transition:border-color 0.2s;
+  }
+  .inp-new-size:focus{border-color:var(--stitch);}
+  .btn-add-size{
+    background:rgba(201,168,76,0.15);border:1px solid var(--card-border);
+    border-radius:8px;color:var(--stitch-light);cursor:pointer;font-family:inherit;
+    font-size:13px;font-weight:700;padding:8px 14px;transition:all 0.15s;flex:1;
+  }
+  .btn-add-size:hover{background:rgba(201,168,76,0.25);border-color:var(--stitch);}
+  .band-total-line{
+    font-size:12px;color:var(--text-dim);text-align:center;
+    padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:10px;
+  }
+  .band-total-line span{color:var(--stitch-light);font-weight:900;}
+
+  /* ── primary btn ── */
+  .btn-primary{
+    width:100%;background:linear-gradient(135deg,var(--stitch),var(--stitch-light));
+    border:none;border-radius:12px;color:var(--denim);
+    cursor:pointer;font-family:inherit;font-size:15px;font-weight:900;
+    padding:13px;transition:transform 0.15s,box-shadow 0.15s;
+    box-shadow:0 4px 20px rgba(201,168,76,0.3);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,0.45);}
+  .btn-primary:active{transform:scale(0.97);}
+
+  /* ── orders list ── */
+  .order-item{
+    background:var(--card);border:1px solid var(--card-border);
+    border-radius:14px;padding:14px 16px;
+    display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;
+  }
+  .order-item:not(:last-child){margin-bottom:10px;}
+  .order-item:hover{border-color:var(--stitch);background:rgba(201,168,76,0.07);}
+  .order-item.done-order{border-color:var(--done);background:rgba(46,204,113,0.07);}
+  .order-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--stitch);}
+  .order-dot.done{background:var(--done);}
+  .order-info{flex:1;}
+  .order-name{font-size:14px;font-weight:700;}
+  .order-sub{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .order-pct{font-size:13px;font-weight:900;color:var(--stitch-light);}
+  .order-pct.done{color:var(--done);}
+  .order-del{background:none;border:none;color:rgba(231,76,60,0.5);cursor:pointer;font-size:16px;padding:4px;transition:color 0.15s;}
+  .order-del:hover{color:var(--danger);}
+
+  /* ── counter screen ── */
+  #counter-section{width:100%;max-width:460px;display:none;flex-direction:column;gap:14px;animation:fadeUp 0.35s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .back-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;padding:4px 0;transition:color 0.15s;}
+  .back-btn:hover{color:var(--stitch-light);}
+
+  /* ring */
+  .progress-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 20px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:16px;gap:8px;}
+  .order-title-bar{font-size:13px;font-weight:700;color:var(--stitch-light);text-align:center;}
+  .ring-container{position:relative;width:160px;height:160px;}
+  .ring-container svg{transform:rotate(-90deg);}
+  .ring-bg{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:12;}
+  .ring-fg{fill:none;stroke:var(--stitch);stroke-width:12;stroke-linecap:round;stroke-dasharray:452;stroke-dashoffset:452;transition:stroke-dashoffset 0.5s cubic-bezier(.4,0,.2,1),stroke 0.4s;}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-done{font-size:40px;font-weight:900;line-height:1;}
+  .ring-total{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .status-line{text-align:center;font-size:14px;font-weight:600;color:var(--text-dim);}
+  .status-line .hl{color:var(--stitch-light);font-size:19px;font-weight:900;}
+
+  /* band btn */
+  .btn-band{width:100%;background:linear-gradient(135deg,var(--denim-light),var(--denim-mid));border:2px solid var(--stitch);border-radius:16px;color:var(--stitch-light);cursor:pointer;font-family:inherit;font-size:18px;font-weight:900;padding:20px;transition:all 0.15s;box-shadow:0 4px 24px rgba(0,0,0,0.3);position:relative;overflow:hidden;}
+  .btn-band::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,0.15),transparent);opacity:0;transition:opacity 0.2s;}
+  .btn-band:hover::after{opacity:1;}
+  .btn-band:hover{transform:translateY(-2px);}
+  .btn-band:active{transform:scale(0.97);}
+  .btn-band:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .btn-sub{font-size:12px;color:var(--text-dim);font-weight:400;margin-top:4px;}
+
+  /* stats */
+  .stats-row{display:flex;gap:8px;}
+  .stat{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:11px 6px;text-align:center;}
+  .stat-val{font-size:20px;font-weight:900;}
+  .stat-val.green{color:var(--done);}
+  .stat-val.gold{color:var(--stitch-light);}
+  .stat-val.red{color:var(--danger);}
+  .stat-label{font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+  /* size breakdown panel */
+  .sizes-panel{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;}
+  .sizes-panel-title{font-size:11px;letter-spacing:2px;color:var(--stitch);text-transform:uppercase;margin-bottom:12px;}
+  .size-track-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .size-track-row:last-child{border-bottom:none;}
+  .sz-tag{background:var(--denim-light);border:1px solid var(--card-border);border-radius:6px;color:var(--stitch-light);font-weight:700;font-size:13px;padding:5px 10px;min-width:48px;text-align:center;flex-shrink:0;}
+  .sz-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;}
+  .sz-bar{height:100%;border-radius:4px;background:var(--stitch);transition:width 0.4s ease;}
+  .sz-bar.warn{background:var(--warn);}
+  .sz-bar.done{background:var(--done);}
+  .sz-numbers{font-size:12px;font-weight:700;color:var(--text-dim);text-align:right;min-width:70px;}
+  .sz-numbers .sz-rem{font-size:14px;color:var(--stitch-light);}
+  .sz-numbers .sz-rem.warn{color:var(--warn);}
+  .sz-numbers .sz-rem.done{color:var(--done);}
+  .sz-numbers .sz-total{font-size:10px;}
+
+  /* done banner */
+  #done-banner{display:none;background:linear-gradient(135deg,#1a4a2e,#1e5e38);border:1px solid var(--done);border-radius:16px;padding:20px;text-align:center;animation:pop 0.4s cubic-bezier(.4,0,.2,1);}
+  @keyframes pop{0%{transform:scale(0.85);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+  #done-banner .done-icon{font-size:36px;margin-bottom:6px;}
+  #done-banner h2{font-size:20px;font-weight:900;color:var(--done);}
+  #done-banner p{font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;}
+
+  /* action row */
+  .action-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn-sm{flex:1;min-width:80px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;padding:11px 8px;transition:all 0.15s;}
+  .btn-sm:hover{background:rgba(255,255,255,0.1);color:var(--text);}
+  .btn-sm.danger:hover{background:rgba(231,76,60,0.15);border-color:var(--danger);color:var(--danger);}
+  .btn-sm.accent{border-color:rgba(201,168,76,0.4);color:var(--stitch-light);}
+  .btn-sm.accent:hover{background:rgba(201,168,76,0.15);border-color:var(--stitch);}
+
+  /* whatsapp modal */
+  #wa-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:flex-end;justify-content:center;}
+  #wa-modal.open{display:flex;}
+  .wa-sheet{background:#1e2d4a;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:460px;animation:slideUp 0.3s ease;}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .wa-title{font-size:13px;letter-spacing:2px;color:var(--stitch);text-transform:uppercase;margin-bottom:12px;}
+  #wa-text{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:12px;resize:none;outline:none;margin-bottom:12px;line-height:1.6;}
+  .wa-btns{display:flex;gap:10px;}
+  .btn-wa{flex:1;background:#25D366;border:none;border-radius:10px;color:#fff;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:13px;transition:opacity 0.15s;}
+  .btn-wa:hover{opacity:0.85;}
+  .btn-copy{flex:1;background:rgba(255,255,255,0.08);border:1px solid var(--card-border);border-radius:10px;color:var(--text);cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:13px;transition:all 0.15s;}
+  .btn-copy:hover{background:rgba(255,255,255,0.15);}
+  .btn-close-wa{background:none;border:none;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;width:100%;padding:10px;margin-top:4px;transition:color 0.15s;}
+  .btn-close-wa:hover{color:var(--text);}
+
+  /* ripple & save badge */
+  .ripple{position:absolute;border-radius:50%;background:rgba(201,168,76,0.35);transform:scale(0);animation:rippleAnim 0.5s linear;pointer-events:none;}
+  @keyframes rippleAnim{to{transform:scale(6);opacity:0}}
+  #save-badge{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(46,204,113,0.9);color:#fff;border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;transition:transform 0.3s;pointer-events:none;z-index:999;}
+  #save-badge.show{transform:translateX(-50%) translateY(0);}
+</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a2a4a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Band Counter">
+  <link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+
+<header>
+  <div class="brand">T&C Garments – Packing</div>
+  <h1>Band <span>Counter</span></h1>
+</header>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="home-section" style="width:100%;max-width:460px;display:flex;flex-direction:column;gap:16px;">
+
+  <div class="card">
+    <div class="card-title">+ New Order</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Order Name / Number</label>
+        <input type="text" id="inp-name" class="text-left" placeholder="e.g. Style 501 – Brand X">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Total Bands Required</label>
+        <input type="number" id="inp-qty" placeholder="36" min="1">
+      </div>
+    </div>
+
+    <!-- Size breakdown -->
+    <div class="card-title" style="margin-top:6px;">Size Breakdown (per band)</div>
+    <div id="sizes-builder"></div>
+    <div class="add-size-row">
+      <input type="text" class="inp-new-size" id="inp-new-size" placeholder="Size (e.g. 32)" maxlength="6">
+      <button class="btn-add-size" onclick="addSizeRow()">+ Add Size</button>
+    </div>
+    <div class="band-total-line" id="band-total-line">Pieces per band: <span id="band-total-num">0</span></div>
+
+    <button class="btn-primary" onclick="createOrder()">▶ Start Order</button>
+  </div>
+
+  <div class="card" id="orders-card" style="display:none;">
+    <div class="card-title">📦 Saved Orders</div>
+    <div id="orders-list"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ COUNTER ═══════════════ -->
+<div id="counter-section">
+  <button class="back-btn" onclick="goHome()">← Back to Orders</button>
+
+  <div class="progress-wrap">
+    <div class="order-title-bar" id="order-title-bar"></div>
+    <div class="ring-container">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle class="ring-bg" cx="80" cy="80" r="72"/>
+        <circle class="ring-fg" id="ring" cx="80" cy="80" r="72"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-done"  id="disp-done">0</div>
+        <div class="ring-total" id="disp-total">of 0</div>
+      </div>
+    </div>
+    <div class="status-line" id="status-line">Remaining: <span class="hl">0</span> bands</div>
+  </div>
+
+  <button class="btn-band" id="band-btn" onclick="addBand(event)">
+    ✅ Full Band Done
+    <div class="btn-sub">Tap every time you complete a band</div>
+  </button>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val green" id="st-done">0</div><div class="stat-label">Bands Done</div></div>
+    <div class="stat"><div class="stat-val red"   id="st-rem">0</div><div class="stat-label">Remaining</div></div>
+    <div class="stat"><div class="stat-val gold"  id="st-pcs">0</div><div class="stat-label">Pieces Out</div></div>
+  </div>
+
+  <!-- Size tracker -->
+  <div class="sizes-panel" id="sizes-panel" style="display:none;">
+    <div class="sizes-panel-title">📐 Size Tracker</div>
+    <div id="size-tracks"></div>
+  </div>
+
+  <div id="done-banner">
+    <div class="done-icon">🎉</div>
+    <h2>Order Complete!</h2>
+    <p id="done-msg"></p>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-sm" onclick="undoBand()">↩ Undo</button>
+    <button class="btn-sm accent" onclick="openWA()">📤 WhatsApp Summary</button>
+    <button class="btn-sm danger" onclick="deleteCurrentOrder()">🗑 Delete</button>
+  </div>
+</div>
+
+<!-- ═══════════════ WA MODAL ═══════════════ -->
+<div id="wa-modal" onclick="closeWAifOutside(event)">
+  <div class="wa-sheet">
+    <div class="wa-title">📤 WhatsApp Summary</div>
+    <textarea id="wa-text" rows="10" readonly></textarea>
+    <div class="wa-btns">
+      <button class="btn-copy" onclick="copyWA()">📋 Copy</button>
+      <button class="btn-wa"   onclick="sendWA()">WhatsApp ↗</button>
+    </div>
+    <button class="btn-close-wa" onclick="closeWA()">Close</button>
+  </div>
+</div>
+
+<div id="save-badge">✔ Saved</div>
+
+<script>
+const STORAGE_KEY = 'tc_orders_v2';
+const CIRC = 2 * Math.PI * 72; // r=72
+
+// ─── Storage ────────────────────────────────────────────────────────
+function loadOrders(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch{return[];}}
+function saveOrders(o){localStorage.setItem(STORAGE_KEY,JSON.stringify(o));flashSave();}
+function flashSave(){const b=document.getElementById('save-badge');b.classList.add('show');setTimeout(()=>b.classList.remove('show'),1500);}
+
+// ─── State ──────────────────────────────────────────────────────────
+let currentId = null;
+// tempSizes: [{size, qty}] used while building new order form
+let tempSizes = [];
+
+// ─── Size builder (home form) ────────────────────────────────────────
+function renderSizeBuilder(){
+  const el = document.getElementById('sizes-builder');
+  el.innerHTML = '';
+  tempSizes.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'size-row';
+    row.innerHTML = `
+      <div class="size-tag">${s.size}</div>
+      <input type="number" class="size-qty-input" value="${s.qty}" min="1" placeholder="qty"
+             onchange="updateTempQty(${i}, this.value)" oninput="updateTempQty(${i}, this.value)">
+      <div class="size-label">pc(s) per band</div>
+      <button class="btn-remove-size" onclick="removeSizeRow(${i})">✕</button>
+    `;
+    el.appendChild(row);
+  });
+  updateBandTotal();
+}
+function updateTempQty(i, v){
+  tempSizes[i].qty = parseInt(v)||1;
+  updateBandTotal();
+}
+function removeSizeRow(i){
+  tempSizes.splice(i,1);
+  renderSizeBuilder();
+}
+function addSizeRow(){
+  const inp = document.getElementById('inp-new-size');
+  const val = inp.value.trim();
+  if(!val){shake_el(inp);return;}
+  if(tempSizes.find(s=>s.size===val)){inp.value='';return;}
+  tempSizes.push({size:val, qty:1});
+  inp.value='';
+  renderSizeBuilder();
+  inp.focus();
+}
+function updateBandTotal(){
+  const total = tempSizes.reduce((a,s)=>a+s.qty,0);
+  document.getElementById('band-total-num').textContent = total;
+}
+// Allow Enter key in size input
+document.getElementById('inp-new-size').addEventListener('keydown', e=>{if(e.key==='Enter')addSizeRow();});
+
+// ─── HOME ───────────────────────────────────────────────────────────
+function renderHome(){
+  const orders = loadOrders();
+  const card   = document.getElementById('orders-card');
+  const list   = document.getElementById('orders-list');
+  if(!orders.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML='';
+  orders.forEach(o=>{
+    const pct    = o.totalBands>0?Math.round(o.doneBands/o.totalBands*100):0;
+    const isDone = o.doneBands>=o.totalBands;
+    const pcsOut = o.doneBands * o.sizes.reduce((a,s)=>a+s.qty,0);
+    const div = document.createElement('div');
+    div.className='order-item'+(isDone?' done-order':'');
+    div.innerHTML=`
+      <div class="order-dot ${isDone?'done':''}"></div>
+      <div class="order-info">
+        <div class="order-name">${o.name}</div>
+        <div class="order-sub">${o.doneBands}/${o.totalBands} bands · ${o.sizes.length} sizes · ${pcsOut} pcs out</div>
+      </div>
+      <div class="order-pct ${isDone?'done':''}">${isDone?'✅':pct+'%'}</div>
+      <button class="order-del" onclick="deleteOrder(event,'${o.id}')">✕</button>
+    `;
+    div.addEventListener('click',()=>openOrder(o.id));
+    list.appendChild(div);
+  });
+}
+function goHome(){
+  currentId=null;
+  document.getElementById('counter-section').style.display='none';
+  document.getElementById('home-section').style.display='flex';
+  renderHome();
+}
+
+// ─── CREATE ─────────────────────────────────────────────────────────
+function createOrder(){
+  const name = document.getElementById('inp-name').value.trim()||('Order '+(loadOrders().length+1));
+  const qty  = parseInt(document.getElementById('inp-qty').value);
+  if(!qty||qty<1){shake('inp-qty');return;}
+  if(!tempSizes.length){alert('Please add at least one size.');return;}
+  // ensure all qty valid
+  const sizes = tempSizes.map(s=>({size:s.size, qty:Math.max(1,s.qty||1)}));
+  const order = {
+    id: Date.now().toString(),
+    name, totalBands:qty, doneBands:0,
+    sizes,  // [{size, qty}]
+  };
+  const orders=loadOrders();
+  orders.push(order);
+  saveOrders(orders);
+  // reset form
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-qty').value='';
+  tempSizes=[];
+  renderSizeBuilder();
+  openOrder(order.id);
+}
+
+// ─── OPEN ────────────────────────────────────────────────────────────
+function openOrder(id){
+  const order=loadOrders().find(o=>o.id===id);
+  if(!order)return;
+  currentId=id;
+  document.getElementById('home-section').style.display='none';
+  document.getElementById('counter-section').style.display='flex';
+  document.getElementById('done-banner').style.display='none';
+  document.getElementById('band-btn').disabled=false;
+  document.getElementById('order-title-bar').textContent=order.name;
+  renderCounter(order);
+  if(order.doneBands>=order.totalBands)showDone(order);
+}
+
+// ─── ADD BAND ────────────────────────────────────────────────────────
+function addBand(e){
+  const orders=loadOrders();
+  const idx=orders.findIndex(o=>o.id===currentId);
+  if(idx===-1||orders[idx].doneBands>=orders[idx].totalBands)return;
+  // ripple
+  const btn=document.getElementById('band-btn');
+  const rect=btn.getBoundingClientRect();
+  const rip=document.createElement('span');
+  rip.className='ripple';
+  rip.style.left=(e.clientX-rect.left)+'px';
+  rip.style.top=(e.clientY-rect.top)+'px';
+  rip.style.width=rip.style.height='40px';
+  rip.style.marginLeft=rip.style.marginTop='-20px';
+  btn.appendChild(rip);
+  setTimeout(()=>rip.remove(),600);
+  orders[idx].doneBands++;
+  saveOrders(orders);
+  renderCounter(orders[idx]);
+  if(orders[idx].doneBands>=orders[idx].totalBands)showDone(orders[idx]);
+}
+
+// ─── UNDO ────────────────────────────────────────────────────────────
+function undoBand(){
+  const orders=loadOrders();
+  const idx=orders.findIndex(o=>o.id===currentId);
+  if(idx===-1||orders[idx].doneBands<=0)return;
+  orders[idx].doneBands--;
+  saveOrders(orders);
+  document.getElementById('done-banner').style.display='none';
+  document.getElementById('band-btn').disabled=false;
+  renderCounter(orders[idx]);
+}
+
+// ─── DELETE ──────────────────────────────────────────────────────────
+function deleteOrder(e,id){e.stopPropagation();saveOrders(loadOrders().filter(o=>o.id!==id));renderHome();}
+function deleteCurrentOrder(){saveOrders(loadOrders().filter(o=>o.id!==currentId));goHome();}
+
+// ─── RENDER COUNTER ──────────────────────────────────────────────────
+function renderCounter(order){
+  const rem    = order.totalBands - order.doneBands;
+  const bandPcs= order.sizes.reduce((a,s)=>a+s.qty,0);
+  const pcsOut = order.doneBands * bandPcs;
+  const pct    = order.totalBands>0 ? order.doneBands/order.totalBands : 0;
+  const offset = CIRC*(1-pct);
+
+  document.getElementById('ring').style.strokeDashoffset=offset;
+  document.getElementById('ring').style.stroke=pct>=1?'var(--done)':'var(--stitch)';
+  document.getElementById('disp-done').textContent=order.doneBands;
+  document.getElementById('disp-total').textContent='of '+order.totalBands;
+  document.getElementById('st-done').textContent=order.doneBands;
+  document.getElementById('st-rem').textContent=rem;
+  document.getElementById('st-pcs').textContent=pcsOut;
+
+  const sl=document.getElementById('status-line');
+  if(rem===0){
+    sl.innerHTML='<span style="color:var(--done);font-size:18px;font-weight:900">✅ Order Complete!</span>';
+  } else {
+    sl.innerHTML='Remaining: <span class="hl">'+rem+'</span> bands';
+  }
+
+  renderSizeTracks(order);
+}
+
+function renderSizeTracks(order){
+  const panel = document.getElementById('sizes-panel');
+  const cont  = document.getElementById('size-tracks');
+  if(!order.sizes||!order.sizes.length){panel.style.display='none';return;}
+  panel.style.display='block';
+  cont.innerHTML='';
+
+  order.sizes.forEach(s=>{
+    const totalNeeded = s.qty * order.totalBands;      // total pieces needed for this size
+    const doneQty     = s.qty * order.doneBands;       // pieces already packed
+    const remaining   = totalNeeded - doneQty;         // pieces still needed
+    const pct         = totalNeeded>0 ? doneQty/totalNeeded : 0;
+    const isLow       = remaining>0 && remaining <= (s.qty*5);  // ≤5 bands worth = warning
+    const isDone      = remaining===0;
+
+    const barClass = isDone?'done':isLow?'warn':'';
+    const remClass = isDone?'done':isLow?'warn':'';
+
+    const row=document.createElement('div');
+    row.className='size-track-row';
+    row.innerHTML=`
+      <div class="sz-tag">${s.size}</div>
+      <div class="sz-bar-wrap">
+        <div class="sz-bar ${barClass}" style="width:${Math.min(100,pct*100).toFixed(1)}%"></div>
+      </div>
+      <div class="sz-numbers">
+        <div class="sz-rem ${remClass}">${isDone?'✅':remaining+' left'}</div>
+        <div class="sz-total">${doneQty}/${totalNeeded} pcs</div>
+      </div>
+    `;
+    cont.appendChild(row);
+  });
+}
+
+// ─── DONE ────────────────────────────────────────────────────────────
+function showDone(order){
+  document.getElementById('done-banner').style.display='block';
+  const total=order.sizes.reduce((a,s)=>a+s.qty,0)*order.totalBands;
+  document.getElementById('done-msg').textContent=
+    order.totalBands+' bands × '+order.sizes.reduce((a,s)=>a+s.qty,0)+' pcs = '+total+' pieces total';
+  document.getElementById('band-btn').disabled=true;
+}
+
+// ─── WHATSAPP ────────────────────────────────────────────────────────
+function buildSummary(){
+  const order=loadOrders().find(o=>o.id===currentId);
+  if(!order)return'';
+  const bandPcs=order.sizes.reduce((a,s)=>a+s.qty,0);
+  const pcsOut=order.doneBands*bandPcs;
+  const totalPcs=order.totalBands*bandPcs;
+  const rem=order.totalBands-order.doneBands;
+  const pct=order.totalBands>0?Math.round(order.doneBands/order.totalBands*100):0;
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const timeStr=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+  let lines=[
+    '📦 *Packing Update – T&C Garments*',
+    `🗓 ${dateStr}  ⏰ ${timeStr}`,
+    '─────────────────────',
+    `*Order:* ${order.name}`,
+    `*Progress:* ${order.doneBands}/${order.totalBands} bands (${pct}%)`,
+    `*Remaining:* ${rem} bands`,
+    `*Pieces out:* ${pcsOut} / ${totalPcs}`,
+    '─────────────────────',
+    '*Size Breakdown:*',
+  ];
+  order.sizes.forEach(s=>{
+    const needed=s.qty*order.totalBands;
+    const done=s.qty*order.doneBands;
+    const left=needed-done;
+    const flag=left===0?'✅':left<=(s.qty*5)?'⚠️':'';
+    lines.push(`  • Size ${s.size}: ${done}/${needed} pcs  (${left} left) ${flag}`);
+  });
+  if(order.doneBands>=order.totalBands){
+    lines.push('─────────────────────');
+    lines.push('🎉 *Order Complete!*');
+  }
+  return lines.join('\n');
+}
+function openWA(){
+  document.getElementById('wa-text').value=buildSummary();
+  document.getElementById('wa-modal').classList.add('open');
+}
+function closeWA(){document.getElementById('wa-modal').classList.remove('open');}
+function closeWAifOutside(e){if(e.target===document.getElementById('wa-modal'))closeWA();}
+function copyWA(){
+  const t=document.getElementById('wa-text');
+  navigator.clipboard.writeText(t.value).then(()=>{
+    const btn=document.querySelector('.btn-copy');
+    btn.textContent='✔ Copied!';setTimeout(()=>btn.textContent='📋 Copy',1500);
+  }).catch(()=>{t.select();document.execCommand('copy');});
+}
+function sendWA(){
+  const txt=encodeURIComponent(document.getElementById('wa-text').value);
+  window.open('https://wa.me/?text='+txt,'_blank');
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────
+function shake(id){
+  const el=document.getElementById(id);
+  el.style.borderColor='var(--danger)';
+  el.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'translateX(0)'}],{duration:300});
+  setTimeout(()=>el.style.borderColor='',600);
+}
+function shake_el(el){
+  el.style.borderColor='var(--danger)';
+  el.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:250});
+  setTimeout(()=>el.style.borderColor='',600);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────
+renderSizeBuilder();
+renderHome();
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.log('SW error', e));
+  });
+}
+</script>
+</body>
+</html>
